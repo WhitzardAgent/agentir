@@ -1,0 +1,73 @@
+apiVersion: agentir.qitor.ai/v0.1
+kind: TrajectoryFormat
+metadata:
+  name: minimal-sharegpt
+  title: Minimal ShareGPT Template
+  version: 0.1.0
+  description: Template for rows with conversations/messages turns and role/content fields.
+  tags: [template, sharegpt]
+source:
+  kind: jsonl
+  record_mode: row
+  framework: custom
+  format: sharegpt-like
+  raw_policy: full
+detect:
+  min_score: 0.70
+  rules:
+    - any_field_exists: [$.conversations, $.messages]
+      score: 0.50
+    - sample_predicate: is_sharegpt_like
+      score: 0.30
+vars:
+  turns:
+    first_of:
+      - path: $.conversations
+      - path: $.messages
+      - const: []
+actors:
+  - actor_id: system
+    kind: system
+  - actor_id: user
+    kind: user
+  - actor_id: assistant
+    kind: assistant
+  - actor_id: tool
+    kind: tool
+episodes:
+  - episode_id: {template: "episode_{context.row_index}"}
+    events:
+      - foreach: {var: turns}
+        as: turn
+        index_as: i
+        emit:
+          event_id: {template: "evt_{i:04d}"}
+          idx: {var: i}
+          event_type:
+            transform: role_to_event_type
+            input:
+              first_of: [{path: "turn.role"}, {path: "turn.from"}]
+          role:
+            transform: role_to_message_role
+            input:
+              first_of: [{path: "turn.role"}, {path: "turn.from"}]
+          actor_id:
+            transform: role_to_actor_id
+            input:
+              first_of: [{path: "turn.role"}, {path: "turn.from"}]
+          content:
+            - type: text
+              text:
+                first_of: [{path: "turn.content"}, {path: "turn.value"}, {const: ""}]
+          provenance:
+            source_field:
+              transform: source_field_for_loop
+              input: {base: conversations, index: {var: i}}
+passes:
+  default: [parse-sharegpt, canonicalize-tools, pair-tool-results, normalize-outcome, verify]
+performance:
+  selector_cache: true
+  transform_cache: true
+  preferred_batch_size: 1024
+  streaming_safe: true
+  can_generate_python: true

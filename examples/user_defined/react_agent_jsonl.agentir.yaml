@@ -1,0 +1,149 @@
+apiVersion: agentir.qitor.ai/v0.1
+kind: TrajectoryFormat
+metadata:
+  name: react-agent-jsonl
+  title: Example ReAct Agent JSONL Format
+  version: 0.1.0
+  description: Example user-defined DSL for rows with steps containing thought/action/observation fields.
+  tags: [example, react, tools, observations]
+source:
+  kind: jsonl
+  record_mode: row
+  framework: custom-react-agent
+  format: react-steps
+  raw_policy: full
+detect:
+  min_score: 0.75
+  rules:
+    - field_exists: $.steps
+      score: 0.40
+    - field_is_list: $.steps
+      score: 0.20
+    - any_field_exists: [$.task, $.final_answer, $.reward]
+      score: 0.15
+    - text_contains:
+        path: $.steps[*].action
+        any: ["tool", "bash", "search"]
+      score: 0.20
+vars:
+  steps: {path: "$.steps"}
+actors:
+  - actor_id: user
+    kind: user
+  - actor_id: assistant
+    kind: assistant
+  - actor_id: tool
+    kind: tool
+task:
+  task_id:
+    first_of: [{path: "$.task_id"}, {path: "$.id"}]
+  instruction: {path: "$.task"}
+outcome:
+  reward: {path: "$.reward"}
+  final_answer: {path: "$.final_answer"}
+  status:
+    transform: infer_outcome_status
+    input:
+      passed: {path: "$.passed"}
+      reward: {path: "$.reward"}
+episodes:
+  - episode_id:
+      first_of: [{path: "$.run_id"}, {path: "$.task_id"}, {template: "episode_{context.row_index}"}]
+    events:
+      - emit_once:
+          event_id: evt_0000
+          idx: 0
+          event_type: user_message
+          actor_id: user
+          role: user
+          content:
+            - type: text
+              text: {path: "$.task"}
+          provenance:
+            source_field: task
+      - foreach: {var: steps}
+        as: step
+        index_as: i
+        emit:
+          event_id: {template: "evt_step_{i:04d}_reasoning"}
+          idx: auto
+          event_type: reasoning
+          actor_id: assistant
+          content:
+            - type: text
+              text: {path: "step.thought"}
+          visibility:
+            transform: reasoning_visibility
+          provenance:
+            source_field:
+              transform: source_field_for_loop
+              input: {base: steps, index: {var: i}, field: thought}
+      - foreach: {var: steps}
+        as: step
+        index_as: i
+        emit:
+          event_id: {template: "evt_step_{i:04d}_action"}
+          idx: auto
+          event_type: tool_call
+          actor_id: assistant
+          action:
+            kind:
+              transform: infer_action_kind
+              input: {path: "step.action_name"}
+            tool_name:
+              first_of: [{path: "step.action_name"}, {path: "step.tool"}, {const: unknown_tool}]
+            tool_call_id:
+              first_of: [{path: "step.action_id"}, {template: "call_{i:04d}"}]
+            arguments:
+              first_of:
+                - path: step.action_input
+                - transform: parse_json
+                  input: step.action
+                  on_error: fallback
+                  fallback: {}
+          provenance:
+            source_field:
+              transform: source_field_for_loop
+              input: {base: steps, index: {var: i}, field: action}
+      - foreach: {var: steps}
+        as: step
+        index_as: i
+        emit:
+          event_id: {template: "evt_step_{i:04d}_observation"}
+          idx: auto
+          event_type: tool_result
+          actor_id: tool
+          observation:
+            kind: tool_json
+            content:
+              - type: text
+                text:
+                  first_of: [{path: "step.observation"}, {const: ""}]
+          provenance:
+            source_field:
+              transform: source_field_for_loop
+              input: {base: steps, index: {var: i}, field: observation}
+      - emit_once:
+          when:
+            field_nonempty: $.final_answer
+          event_id: evt_final
+          idx: auto
+          event_type: finish
+          actor_id: assistant
+          content:
+            - type: text
+              text: {path: "$.final_answer"}
+          provenance:
+            source_field: final_answer
+quality:
+  required_fields: [$.steps]
+  min_events: 1
+  require_provenance: true
+passes:
+  default: [canonicalize-tools, pair-tool-results, normalize-outcome, redact-reasoning, verify]
+performance:
+  selector_cache: true
+  transform_cache: true
+  preferred_batch_size: 1024
+  streaming_safe: true
+  can_generate_python: true

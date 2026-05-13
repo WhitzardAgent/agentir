@@ -1,0 +1,165 @@
+apiVersion: agentir.qitor.ai/v0.1
+kind: TrajectoryFormat
+metadata:
+  name: claude-code
+  title: Claude Code Merged Traces
+  version: 0.1.0
+  description: DSL equivalent of the Claude Code frontend for nlile/misc-merged-claude-code-traces-v1.
+  tags: [claude-code, coding-agent, tools, patches, terminal-log]
+source:
+  kind: hf
+  record_mode: row
+  default_dataset: nlile/misc-merged-claude-code-traces-v1
+  default_split: train
+  framework: claude-code
+  format: mixed-json-fields
+  raw_policy: full
+detect:
+  min_score: 0.70
+  rules:
+    - sample_predicate: has_claude_code_fields
+      score: 0.50
+    - any_field_exists: [$.messages_json, $.system_prompt, $.user_prompt, $.assistant_response]
+      score: 0.25
+    - any_field_exists: [$.tools_json, $.gitdiff, $.claude_log, $.chatml]
+      score: 0.25
+vars:
+  parsed_messages:
+    transform: parse_json
+    input: $.messages_json
+    on_error: fallback
+    fallback: []
+  fallback_messages:
+    transform: build_messages_from_fields
+    input:
+      system: {path: "$.system_prompt"}
+      user: {path: "$.user_prompt"}
+      assistant: {path: "$.assistant_response"}
+  turns:
+    first_of:
+      - var: parsed_messages
+      - var: fallback_messages
+      - const: []
+  row_id:
+    first_of:
+      - path: $.id
+      - path: $.run_id
+      - template: "row_{context.row_index}"
+actors:
+  - actor_id: system
+    kind: system
+  - actor_id: user
+    kind: user
+  - actor_id: assistant
+    kind: assistant
+  - actor_id: tool
+    kind: tool
+  - actor_id: environment
+    kind: environment
+tool_registry:
+  from:
+    transform: parse_json
+    input: $.tools_json
+    on_error: fallback
+    fallback: []
+  item:
+    name:
+      first_of: [{path: "item.name"}, {path: "item.function.name"}]
+    description:
+      first_of: [{path: "item.description"}, {path: "item.function.description"}]
+    input_schema:
+      first_of: [{path: "item.input_schema"}, {path: "item.parameters"}, {path: "item.function.parameters"}, {const: {}}]
+task:
+  task_id:
+    first_of: [{path: "$.task_id"}, {path: "$.run_id"}, {path: "$.id"}]
+  instruction:
+    first_of: [{path: "$.user_prompt"}, {path: "$.messages_json[0].content"}, {path: "$.prompt"}]
+  benchmark: {path: "$.benchmark"}
+  repo:
+    first_of: [{path: "$.repo"}, {path: "$.repository"}]
+  issue_id:
+    first_of: [{path: "$.issue_id"}, {path: "$.instance_id"}]
+artifacts:
+  - when:
+      field_nonempty: $.gitdiff
+    artifact_id: gitdiff_patch
+    kind: patch
+    content: {path: "$.gitdiff"}
+    mime_type: text/x-diff
+    created_by_event_id: evt_gitdiff_patch
+    provenance:
+      source_field: gitdiff
+  - when:
+      field_nonempty: $.claude_log
+    artifact_id: claude_terminal_log
+    kind: terminal_log
+    content: {path: "$.claude_log"}
+    mime_type: text/plain
+    provenance:
+      source_field: claude_log
+outcome:
+  final_answer:
+    first_of: [{path: "$.assistant_response"}, {path: "$.final_answer"}]
+  final_patch_artifact_id:
+    when:
+      field_nonempty: $.gitdiff
+    const: gitdiff_patch
+episodes:
+  - episode_id:
+      first_of: [{path: "$.run_id"}, {path: "$.id"}, {template: "episode_{context.row_index}"}]
+    events:
+      - foreach: {var: turns}
+        as: turn
+        index_as: i
+        emit:
+          event_id: {template: "evt_{i:04d}"}
+          idx: {var: i}
+          event_type:
+            transform: role_to_event_type
+            input:
+              first_of: [{path: "turn.role"}, {path: "turn.from"}]
+          role:
+            transform: role_to_message_role
+            input:
+              first_of: [{path: "turn.role"}, {path: "turn.from"}]
+          actor_id:
+            transform: role_to_actor_id
+            input:
+              first_of: [{path: "turn.role"}, {path: "turn.from"}]
+          content:
+            - type: text
+              text:
+                first_of: [{path: "turn.content"}, {path: "turn.value"}, {const: ""}]
+          provenance:
+            source_field:
+              transform: source_field_for_loop
+              input: {base: messages_json, index: {var: i}}
+      - emit_once:
+          when:
+            field_nonempty: $.gitdiff
+          event_id: evt_gitdiff_patch
+          idx: auto
+          event_type: file_patch
+          actor_id: assistant
+          content:
+            - type: diff
+              text: {path: "$.gitdiff"}
+          artifacts: [gitdiff_patch]
+          provenance:
+            source_field: gitdiff
+quality:
+  min_events: 1
+  require_provenance: true
+  warn_if_empty:
+    - path: $.assistant_response
+      code: DATA001
+      message: assistant_response is empty
+passes:
+  default: [parse-claude-log, canonicalize-tools, pair-tool-results, extract-patches, normalize-outcome, verify]
+  recommended_for_training: [parse-claude-log, canonicalize-tools, pair-tool-results, extract-patches, normalize-outcome, redact-reasoning, slice-training, verify]
+performance:
+  selector_cache: true
+  transform_cache: true
+  preferred_batch_size: 512
+  streaming_safe: true
+  can_generate_python: true

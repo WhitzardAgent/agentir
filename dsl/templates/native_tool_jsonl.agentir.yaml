@@ -1,0 +1,88 @@
+apiVersion: agentir.qitor.ai/v0.1
+kind: TrajectoryFormat
+metadata:
+  name: native-tool-jsonl
+  title: Native Tool JSONL Template
+  version: 0.1.0
+  description: Template for OpenAI/OpenHands-like messages with native tool_calls arrays.
+  tags: [template, tools, jsonl]
+source:
+  kind: jsonl
+  record_mode: row
+  framework: custom
+  format: native-tool-messages
+  raw_policy: full
+detect:
+  min_score: 0.70
+  rules:
+    - any_field_exists: [$.messages, $.trajectory]
+      score: 0.40
+    - sample_predicate: has_native_tool_calls
+      score: 0.40
+vars:
+  turns:
+    first_of:
+      - path: $.messages
+      - path: $.trajectory
+      - const: []
+actors:
+  - actor_id: user
+    kind: user
+  - actor_id: assistant
+    kind: assistant
+  - actor_id: tool
+    kind: tool
+tool_registry:
+  from:
+    first_of:
+      - path: $.tools
+      - path: $.tool_registry
+      - const: []
+  item:
+    name:
+      first_of: [{path: "item.name"}, {path: "item.function.name"}]
+    description:
+      first_of: [{path: "item.description"}, {path: "item.function.description"}]
+    input_schema:
+      first_of: [{path: "item.input_schema"}, {path: "item.parameters"}, {path: "item.function.parameters"}, {const: {}}]
+episodes:
+  - episode_id: {template: "episode_{context.row_index}"}
+    events:
+      - foreach: {var: turns}
+        as: turn
+        index_as: i
+        emit:
+          event_id: {template: "evt_{i:04d}"}
+          idx: {var: i}
+          event_type:
+            transform: role_to_event_type
+            input: {path: "turn.role"}
+          role:
+            transform: role_to_message_role
+            input: {path: "turn.role"}
+          actor_id:
+            transform: role_to_actor_id
+            input: {path: "turn.role"}
+          content:
+            - type: text
+              text:
+                first_of: [{path: "turn.content"}, {const: ""}]
+          provenance:
+            source_field:
+              transform: source_field_for_loop
+              input: {base: messages, index: {var: i}}
+      - foreach: {var: turns}
+        as: turn
+        index_as: i
+        expand_tool_calls:
+          from: turn.tool_calls
+          parent_event_id: {template: "evt_{i:04d}"}
+          event_id_template: "evt_{i:04d}_call_{j:02d}"
+passes:
+  default: [canonicalize-tools, pair-tool-results, normalize-outcome, verify]
+performance:
+  selector_cache: true
+  transform_cache: true
+  preferred_batch_size: 1024
+  streaming_safe: true
+  can_generate_python: true

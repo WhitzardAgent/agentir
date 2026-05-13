@@ -1,0 +1,128 @@
+apiVersion: agentir.qitor.ai/v0.1
+kind: TrajectoryFormat
+metadata:
+  name: agenttrove
+  title: AgentTrove ShareGPT-like Traces
+  version: 0.1.0
+  description: DSL equivalent of the AgentTrove frontend for open-thoughts/AgentTrove.
+  tags: [sharegpt, merged-dataset, weak-tools]
+source:
+  kind: hf
+  record_mode: row
+  default_dataset: open-thoughts/AgentTrove
+  default_split: train
+  framework: agenttrove
+  format: sharegpt-like
+  raw_policy: full
+detect:
+  min_score: 0.70
+  rules:
+    - any_field_exists: [$.messages, $.conversations, $.conversation]
+      score: 0.50
+    - sample_predicate: is_sharegpt_like
+      score: 0.30
+    - any_field_exists: [$.reward, $.original_source, $.original_teacher]
+      score: 0.20
+vars:
+  turns:
+    first_of:
+      - path: $.messages
+      - path: $.conversations
+      - path: $.conversation
+      - const: []
+  row_id:
+    first_of:
+      - path: $.id
+      - path: $.task_id
+      - path: $.run_id
+      - template: "row_{context.row_index}"
+actors:
+  - actor_id: system
+    kind: system
+  - actor_id: user
+    kind: user
+  - actor_id: assistant
+    kind: assistant
+  - actor_id: tool
+    kind: tool
+task:
+  task_id:
+    first_of:
+      - path: $.task_id
+      - path: $.run_id
+  instruction:
+    first_of:
+      - path: $.instruction
+      - path: $.prompt
+      - path: $.task
+      - path: $.messages[0].content
+      - path: $.conversations[0].value
+source_overrides:
+  original_source: {path: "$.original_source"}
+  original_teacher: {path: "$.original_teacher"}
+outcome:
+  reward: {path: "$.reward"}
+  status:
+    const: unknown
+episodes:
+  - episode_id:
+      first_of:
+        - path: $.run_id
+        - path: $.task_id
+        - template: "episode_{context.row_index}"
+    task_id:
+      first_of:
+        - path: $.task_id
+        - path: $.run_id
+    events:
+      - foreach: {var: turns}
+        as: turn
+        index_as: i
+        emit:
+          event_id: {template: "evt_{i:04d}"}
+          idx: {var: i}
+          event_type:
+            transform: role_to_event_type
+            input:
+              first_of:
+                - path: turn.role
+                - path: turn.from
+          role:
+            transform: role_to_message_role
+            input:
+              first_of:
+                - path: turn.role
+                - path: turn.from
+          actor_id:
+            transform: role_to_actor_id
+            input:
+              first_of:
+                - path: turn.role
+                - path: turn.from
+          content:
+            - type: text
+              text:
+                first_of:
+                  - path: turn.content
+                  - path: turn.value
+                  - const: ""
+          provenance:
+            source_field:
+              transform: source_field_for_loop
+              input:
+                base: conversations
+                index: {var: i}
+quality:
+  min_events: 1
+  require_provenance: true
+  notes:
+    - Do not infer tool calls by default; use canonical pass option or explicit user DSL when needed.
+passes:
+  default: [parse-sharegpt, canonicalize-tools, pair-tool-results, normalize-outcome, verify]
+  recommended_for_training: [parse-sharegpt, canonicalize-tools, pair-tool-results, normalize-outcome, redact-reasoning, slice-training, verify]
+performance:
+  selector_cache: true
+  transform_cache: true
+  preferred_batch_size: 1024
+  streaming_safe: true
+  can_generate_python: true

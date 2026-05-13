@@ -1,0 +1,7 @@
+warning[PAIR001]: tool_call has no matching tool_result
+  --> lambda/hermes-agent-reasoning-traces:train:row 582:conversations[7].value
+   |
+ 7 | <tool_call>{"name":"execute_bash","arguments":{"command":"pytest"}}</tool_call>
+   | ^^^^^^^^^^^ unmatched tool call
+   |
+help: run with --passes pair-tool-results or inspect malformed tool_call_id

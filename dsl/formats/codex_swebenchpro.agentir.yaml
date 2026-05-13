@@ -1,0 +1,134 @@
+apiVersion: agentir.qitor.ai/v0.1
+kind: TrajectoryFormat
+metadata:
+  name: codex-swebenchpro
+  title: Codex SWE-bench Pro Traces
+  version: 0.1.0
+  description: DSL equivalent of the Codex SWE-bench Pro frontend for Inferact/codex_swebenchpro_traces.
+  tags: [sharegpt, coding-agent, swe]
+source:
+  kind: hf
+  record_mode: row
+  default_dataset: Inferact/codex_swebenchpro_traces
+  default_split: train
+  framework: codex-swebenchpro
+  format: sharegpt-like-coding
+  raw_policy: full
+detect:
+  min_score: 0.70
+  rules:
+    - field_exists: $.conversations
+      score: 0.45
+    - field_is_list: $.conversations
+      score: 0.20
+    - sample_predicate: is_sharegpt_like
+      score: 0.20
+    - any_field_exists: [$.repo, $.repository, $.instance_id, $.issue_id, $.passed, $.reward]
+      score: 0.15
+vars:
+  turns: {path: "$.conversations"}
+  row_id:
+    first_of:
+      - path: $.instance_id
+      - path: $.id
+      - template: "row_{context.row_index}"
+actors:
+  - actor_id: user
+    kind: user
+  - actor_id: assistant
+    kind: assistant
+  - actor_id: tool
+    kind: tool
+task:
+  task_id:
+    first_of:
+      - path: $.instance_id
+      - path: $.task_id
+      - path: $.id
+  instruction:
+    first_of:
+      - path: $.problem_statement
+      - path: $.instruction
+      - path: $.conversations[0].value
+  benchmark:
+    first_of:
+      - path: $.benchmark
+      - const: swebenchpro
+  repo:
+    first_of:
+      - path: $.repo
+      - path: $.repository
+  base_commit: {path: "$.base_commit"}
+  issue_id:
+    first_of:
+      - path: $.issue_id
+      - path: $.instance_id
+outcome:
+  reward:
+    first_of:
+      - path: $.reward
+      - path: $.score
+  passed:
+    first_of:
+      - path: $.passed
+      - path: $.success
+  status:
+    transform: infer_outcome_status
+    input:
+      passed:
+        first_of:
+          - path: $.passed
+          - path: $.success
+      reward:
+        first_of:
+          - path: $.reward
+          - path: $.score
+episodes:
+  - episode_id:
+      first_of:
+        - path: $.run_id
+        - path: $.instance_id
+        - template: "episode_{context.row_index}"
+    task_id:
+      first_of:
+        - path: $.instance_id
+        - path: $.task_id
+    events:
+      - foreach: {var: turns}
+        as: turn
+        index_as: i
+        emit:
+          event_id: {template: "evt_{i:04d}"}
+          idx: {var: i}
+          event_type:
+            transform: role_to_event_type
+            input:
+              first_of: [{path: "turn.from"}, {path: "turn.role"}]
+          role:
+            transform: role_to_message_role
+            input:
+              first_of: [{path: "turn.from"}, {path: "turn.role"}]
+          actor_id:
+            transform: role_to_actor_id
+            input:
+              first_of: [{path: "turn.from"}, {path: "turn.role"}]
+          content:
+            - type: text
+              text:
+                first_of: [{path: "turn.value"}, {path: "turn.content"}, {const: ""}]
+          provenance:
+            source_field:
+              transform: source_field_for_loop
+              input: {base: conversations, index: {var: i}}
+quality:
+  min_events: 1
+  require_provenance: true
+passes:
+  default: [parse-sharegpt, canonicalize-tools, pair-tool-results, extract-patches, normalize-outcome, verify]
+  recommended_for_training: [parse-sharegpt, canonicalize-tools, pair-tool-results, extract-patches, normalize-outcome, slice-training, verify]
+performance:
+  selector_cache: true
+  transform_cache: true
+  preferred_batch_size: 1024
+  streaming_safe: true
+  can_generate_python: true

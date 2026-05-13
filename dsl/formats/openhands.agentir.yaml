@@ -1,0 +1,140 @@
+apiVersion: agentir.qitor.ai/v0.1
+kind: TrajectoryFormat
+metadata:
+  name: openhands
+  title: OpenHands SWE-Hero Trajectories
+  version: 0.1.0
+  description: DSL equivalent of the OpenHands frontend for nvidia/SWE-Hero-openhands-trajectories.
+  tags: [openhands, swe, native-tools, patches]
+source:
+  kind: hf
+  record_mode: row
+  default_dataset: nvidia/SWE-Hero-openhands-trajectories
+  default_split: train
+  framework: openhands
+  format: native-tool-trajectory
+  raw_policy: full
+source_overrides:
+  license: {path: "$.license"}
+detect:
+  min_score: 0.75
+  rules:
+    - field_exists: $.trajectory
+      score: 0.40
+    - field_is_list: $.trajectory
+      score: 0.20
+    - any_field_exists: [$.trajectory_id, $.repo, $.model_patch]
+      score: 0.25
+    - sample_predicate: has_openhands_fields
+      score: 0.15
+vars:
+  turns: {path: "$.trajectory"}
+  row_id:
+    first_of: [{path: "$.trajectory_id"}, {path: "$.id"}, {template: "row_{context.row_index}"}]
+actors:
+  - actor_id: user
+    kind: user
+  - actor_id: assistant
+    kind: assistant
+  - actor_id: tool
+    kind: tool
+  - actor_id: environment
+    kind: environment
+task:
+  task_id:
+    first_of: [{path: "$.trajectory_id"}, {path: "$.instance_id"}]
+  instruction:
+    first_of: [{path: "$.instruction"}, {path: "$.trajectory[0].content"}]
+  benchmark:
+    first_of: [{path: "$.benchmark"}, {const: swe-hero}]
+  repo: {path: "$.repo"}
+  base_commit: {path: "$.base_commit"}
+  issue_id:
+    first_of: [{path: "$.issue_id"}, {path: "$.instance_id"}]
+artifacts:
+  - when:
+      field_nonempty: $.model_patch
+    artifact_id: final_patch
+    kind: patch
+    content: {path: "$.model_patch"}
+    mime_type: text/x-diff
+    created_by_event_id: evt_final_patch
+    provenance:
+      source_field: model_patch
+outcome:
+  final_patch_artifact_id:
+    when:
+      field_nonempty: $.model_patch
+    const: final_patch
+  passed:
+    first_of: [{path: "$.passed"}, {path: "$.success"}]
+  status:
+    transform: infer_outcome_status
+    input:
+      passed:
+        first_of: [{path: "$.passed"}, {path: "$.success"}]
+episodes:
+  - episode_id:
+      first_of: [{path: "$.trajectory_id"}, {path: "$.run_id"}, {template: "episode_{context.row_index}"}]
+    task_id:
+      first_of: [{path: "$.trajectory_id"}, {path: "$.instance_id"}]
+    events:
+      - foreach: {var: turns}
+        as: turn
+        index_as: i
+        emit:
+          event_id: {template: "evt_{i:04d}"}
+          idx: {var: i}
+          event_type:
+            transform: role_to_event_type
+            input:
+              first_of: [{path: "turn.role"}, {path: "turn.from"}]
+          role:
+            transform: role_to_message_role
+            input:
+              first_of: [{path: "turn.role"}, {path: "turn.from"}]
+          actor_id:
+            transform: role_to_actor_id
+            input:
+              first_of: [{path: "turn.role"}, {path: "turn.from"}]
+          content:
+            - type: text
+              text:
+                first_of: [{path: "turn.content"}, {path: "turn.value"}, {const: ""}]
+          provenance:
+            source_field:
+              transform: source_field_for_loop
+              input: {base: trajectory, index: {var: i}}
+      - foreach: {var: turns}
+        as: turn
+        index_as: i
+        expand_tool_calls:
+          from: turn.tool_calls
+          parent_event_id: {template: "evt_{i:04d}"}
+          event_id_template: "evt_{i:04d}_call_{j:02d}"
+      - emit_once:
+          when:
+            field_nonempty: $.model_patch
+          event_id: evt_final_patch
+          idx: auto
+          event_type: file_patch
+          actor_id: assistant
+          content:
+            - type: diff
+              text: {path: "$.model_patch"}
+          artifacts: [final_patch]
+          provenance:
+            source_field: model_patch
+quality:
+  required_fields: [$.trajectory]
+  min_events: 1
+  require_provenance: true
+passes:
+  default: [parse-openhands-tool-calls, canonicalize-tools, pair-tool-results, extract-patches, normalize-outcome, verify]
+  recommended_for_training: [parse-openhands-tool-calls, canonicalize-tools, pair-tool-results, extract-patches, normalize-outcome, slice-training, verify]
+performance:
+  selector_cache: true
+  transform_cache: true
+  preferred_batch_size: 1024
+  streaming_safe: true
+  can_generate_python: true

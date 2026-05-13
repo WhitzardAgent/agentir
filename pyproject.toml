@@ -1,0 +1,75 @@
+[project]
+name = "agentir"
+version = "0.1.0"
+description = "A compiler infrastructure for agentic trajectories."
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+license = { text = "Apache-2.0" }
+authors = [{ name = "agentir contributors" }]
+dependencies = [
+  "pydantic>=2.8",
+  "typer>=0.12",
+  "rich>=13.7",
+  "orjson>=3.10",
+  "jsonlines>=4.0",
+  "datasets>=2.20",
+  "huggingface-hub>=0.24",
+  "pyarrow>=16.0",
+  "pandas>=2.2",
+  "typing-extensions>=4.12",
+  "ruamel.yaml>=0.18",
+  "defusedxml>=0.7",
+  "unidiff>=0.7",
+]
+
+[project.optional-dependencies]
+tui = [
+  "textual>=0.70",
+]
+dev = [
+  "pytest>=8.2",
+  "pytest-cov>=5.0",
+  "hypothesis>=6.100",
+  "mypy>=1.10",
+  "ruff>=0.5",
+  "pre-commit>=3.7",
+]
+docs = [
+  "mkdocs>=1.6",
+  "mkdocs-material>=9.5",
+]
+perf = [
+  "duckdb>=1.0",
+  "ijson>=3.3",
+]
+otel = [
+  "opentelemetry-api>=1.25",
+  "opentelemetry-sdk>=1.25",
+]
+
+[project.scripts]
+agentir = "agentir.cli.main:app"
+agentir-as = "agentir.cli.as_cmd:app"
+agentir-opt = "agentir.cli.opt_cmd:app"
+agentir-llc = "agentir.cli.llc_cmd:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "PTH"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_configs = true
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers --strict-config"

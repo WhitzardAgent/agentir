@@ -1,0 +1,1 @@
+{"conversations": [{"from": "system", "value": "You are a helpful assistant with access to the following tools."}, {"from": "human", "value": "What files are in the current directory?"}, {"from": "gpt", "value": "༄Let me think about what tool to use to list files in the directory.<tool_call>{\"name\": \"execute_bash\", \"arguments\": {\"command\": \"ls -la\"}}

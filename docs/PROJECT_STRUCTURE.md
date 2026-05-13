@@ -1,0 +1,276 @@
+# Required Repository Structure
+
+This repository is a compiler-style toolchain for agent trajectories. The structure below is the target layout after implementing the core AgentIR system and the user-defined format DSL.
+
+This documentation overlay package does not include `src/` or `tests/`, but the implementation should converge to this structure.
+
+```text
+agentir/
+  README.md
+  README_DSL_EXTENSION.md
+  APPLY_OVERWRITE.md
+  LICENSE
+  pyproject.toml
+  uv.lock                         # generated after uv sync
+  .gitignore
+  .pre-commit-config.yaml
+
+  docs/
+    DESIGN.md
+    SPEC.md
+    DSL.md
+    DIALECTS.md
+    PASSES.md
+    FRONTENDS.md
+    BACKENDS.md
+    CLI.md
+    DIAGNOSTICS.md
+    TESTING.md
+    ROADMAP.md
+    PROJECT_STRUCTURE.md
+    STACK.md
+    IMPLEMENTATION_NOTES.md
+    dsl/
+      DSL_OVERVIEW.md
+      DSL_SPEC.md
+      DSL_BUILTINS.md
+      DSL_RUNTIME.md
+      DSL_AUTHORING_GUIDE.md
+      DSL_CLI_DELTA.md
+      DSL_TERMINAL_UI.md
+      DSL_PERFORMANCE.md
+      DSL_TESTING.md
+      DSL_SECURITY.md
+      DSL_DIAGNOSTICS_DELTA.md
+      DSL_PROJECT_STRUCTURE_DELTA.md
+      DSL_ROADMAP.md
+
+  dsl/
+    formats/
+      agenttrove.agentir.yaml
+      codex_swebenchpro.agentir.yaml
+      claude_code.agentir.yaml
+      openhands.agentir.yaml
+      hermes_agent.agentir.yaml
+    templates/
+      minimal_sharegpt.agentir.yaml
+      native_tool_jsonl.agentir.yaml
+
+  examples/
+    user_defined/
+      react_agent_jsonl.agentir.yaml
+
+  schema/
+    agentir.schema.v0.1.json              # generated from IR Pydantic models
+    agentir.format_dsl.schema.v0.1.json   # generated from DSL Pydantic models
+    agentir.schema.v0.1.note.md
+    format_dsl.schema.v0.1.note.md
+
+  prompts/
+    CLAUDE_CODE_MASTER_PROMPT.md
+    CLAUDE_CODE_DSL_EXTENSION_PROMPT.md
+    CLAUDE_CODE_FULL_OVERWRITE_PROMPT.md
+
+  src/agentir/
+    __init__.py
+    version.py
+
+    ir/
+      __init__.py
+      base.py
+      record.py
+      source.py
+      task.py
+      actor.py
+      episode.py
+      event.py
+      content.py
+      action.py
+      observation.py
+      state.py
+      control.py
+      artifact.py
+      tool.py
+      outcome.py
+      visibility.py
+      provenance.py
+
+    dialects/
+      __init__.py
+      registry.py
+      core.py
+      tool.py
+      terminal.py
+      file.py
+      browser.py
+      swe.py
+      reasoning.py
+      eval.py
+
+    diagnostics/
+      __init__.py
+      diagnostic.py
+      reporter.py
+      codes.py
+
+    sourcemap/
+      __init__.py
+      map.py
+
+    io/
+      __init__.py
+      jsonl.py
+      parquet.py
+      hf.py
+
+    frontends/
+      __init__.py
+      base.py
+      registry.py
+      sharegpt.py
+      agenttrove.py
+      codex_swebenchpro.py
+      claude_code.py
+      openhands.py
+      hermes_agent.py
+      dsl_frontend.py
+      generated/
+        __init__.py
+
+    dsl/
+      __init__.py
+      models.py
+      loader.py
+      validator.py
+      selectors.py
+      expressions.py
+      transforms.py
+      conditions.py
+      emitters.py
+      compiler.py
+      runtime_frontend.py
+      codegen.py
+      reports.py
+      bench.py
+      tui.py
+
+    passes/
+      __init__.py
+      base.py
+      registry.py
+      manager.py
+      parse_sharegpt.py
+      parse_hermes_xml.py
+      parse_claude_log.py
+      parse_openhands_tool_calls.py
+      canonicalize_tools.py
+      pair_tool_results.py
+      extract_patches.py
+      normalize_outcome.py
+      redact_reasoning.py
+      slice_training.py
+      verify.py
+
+    backends/
+      __init__.py
+      base.py
+      registry.py
+      loss.py
+      sft.py
+      process_supervision.py
+      openai_tools.py
+      hermes_xml.py
+      openhands.py
+      sharegpt.py
+
+    cli/
+      __init__.py
+      main.py
+      as_cmd.py
+      opt_cmd.py
+      llc_cmd.py
+      verify_cmd.py
+      schema_cmd.py
+      compile_cmd.py
+      dsl_cmd.py
+      tui_cmd.py
+
+  tests/
+    fixtures/
+      agenttrove_sample.jsonl
+      codex_swebenchpro_sample.jsonl
+      claude_code_sample.jsonl
+      openhands_sample.jsonl
+      hermes_agent_sample.jsonl
+      dsl/
+        minimal_sharegpt.jsonl
+        native_tool_jsonl.jsonl
+    golden/
+      dsl/
+        agenttrove.snapshot.json
+        codex_swebenchpro.snapshot.json
+        claude_code.snapshot.json
+        openhands.snapshot.json
+        hermes_agent.snapshot.json
+    test_ir_models.py
+    test_frontends.py
+    test_passes.py
+    test_backends.py
+    test_cli.py
+    test_roundtrip.py
+    test_diagnostics.py
+    test_dsl_models.py
+    test_dsl_selectors.py
+    test_dsl_transforms.py
+    test_dsl_runtime_frontend.py
+    test_dsl_cli.py
+    test_dsl_equivalence.py
+    test_dsl_diagnostics.py
+```
+
+## Implementation notes
+
+- Handwritten frontends and DSL frontends must coexist.
+- Built-in DSL specs must be treated as first-class repository assets, not examples only.
+- `schema/*.json` files should be generated by CLI commands rather than hand-written.
+- Textual-based fullscreen TUI is optional; Rich-based terminal preview/probe/bench is required.
+- Optional generated DSL Python frontends should live under `src/agentir/frontends/generated/` and must not be committed unless explicitly configured.
+
+## Dependency delta for DSL support
+
+Add to `pyproject.toml` if not already present:
+
+```toml
+dependencies = [
+  "ruamel.yaml>=0.18",
+]
+
+[project.optional-dependencies]
+tui = [
+  "textual>=0.70",
+]
+perf = [
+  "duckdb>=1.0",
+  "ijson>=3.3",
+]
+```
+
+Do not make Textual required for core CLI usage.
+
+## Entry points
+
+Required console scripts:
+
+```toml
+[project.scripts]
+agentir = "agentir.cli.main:app"
+agentir-as = "agentir.cli.as_cmd:app"
+agentir-opt = "agentir.cli.opt_cmd:app"
+agentir-llc = "agentir.cli.llc_cmd:app"
+```
+
+Optional alias after DSL matures:
+
+```toml
+agentir-dslc = "agentir.cli.dsl_cmd:app"
+```

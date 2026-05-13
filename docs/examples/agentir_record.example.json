@@ -1,0 +1,96 @@
+{
+  "ir_version": "0.1.0",
+  "record_id": "hermes_demo_0001",
+  "level": "canonical",
+  "source": {
+    "dataset": "lambda/hermes-agent-reasoning-traces",
+    "dataset_url": "https://huggingface.co/datasets/lambda/hermes-agent-reasoning-traces",
+    "split": "train",
+    "row_id": "0",
+    "framework": "hermes-agent",
+    "format": "sharegpt+xml-tool-blocks"
+  },
+  "task": {
+    "task_id": "demo_task",
+    "instruction": "List files and report the result.",
+    "category": "Terminal & Coding",
+    "subcategory": "Terminal Tasks",
+    "environment": {
+      "kind": "linux",
+      "cwd": "/workspace",
+      "network": "unknown"
+    }
+  },
+  "tool_registry": [
+    {
+      "tool_id": "tool_execute_bash",
+      "name": "execute_bash",
+      "description": "Execute a shell command.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "command": {"type": "string"}
+        },
+        "required": ["command"]
+      }
+    }
+  ],
+  "actors": [
+    {"actor_id": "user", "kind": "user"},
+    {"actor_id": "assistant", "kind": "assistant"},
+    {"actor_id": "tool", "kind": "tool", "name": "execute_bash"}
+  ],
+  "episodes": [
+    {
+      "episode_id": "episode_0001",
+      "task_id": "demo_task",
+      "segments": [],
+      "events": [
+        {
+          "event_id": "evt_0001",
+          "idx": 1,
+          "event_type": "user_message",
+          "actor_id": "user",
+          "role": "user",
+          "content": [{"type": "text", "text": "List files."}]
+        },
+        {
+          "event_id": "evt_0002",
+          "idx": 2,
+          "event_type": "tool_call",
+          "actor_id": "assistant",
+          "role": "assistant",
+          "action": {
+            "kind": "terminal",
+            "tool_name": "execute_bash",
+            "tool_call_id": "call_1",
+            "arguments": {"command": "ls"},
+            "call_style": "xml_block",
+            "side_effect_level": "read_only"
+          }
+        },
+        {
+          "event_id": "evt_0003",
+          "idx": 3,
+          "event_type": "tool_result",
+          "actor_id": "tool",
+          "role": "tool",
+          "observation": {
+            "kind": "terminal",
+            "stdout": "README.md\nsrc\n",
+            "stderr": "",
+            "exit_code": 0,
+            "truncated": false
+          }
+        }
+      ],
+      "state_timeline": [],
+      "outcome": {"status": "success", "reward": 1.0, "passed": true}
+    }
+  ],
+  "artifacts": [],
+  "outcome": {"status": "success", "reward": 1.0, "passed": true},
+  "diagnostics": [],
+  "raw": {},
+  "metadata": {}
+}

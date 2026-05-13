@@ -1,0 +1,109 @@
+apiVersion: agentir.qitor.ai/v0.1
+kind: TrajectoryFormat
+metadata:
+  name: hermes-agent
+  title: Hermes Agent Reasoning Traces
+  version: 0.1.0
+  description: DSL equivalent of the Hermes Agent frontend for lambda/hermes-agent-reasoning-traces.
+  tags: [sharegpt, xml-tools, reasoning, tool-schema]
+source:
+  kind: hf
+  record_mode: row
+  default_dataset: lambda/hermes-agent-reasoning-traces
+  default_split: train
+  framework: hermes-agent
+  format: sharegpt-hermes-xml
+  raw_policy: full
+detect:
+  min_score: 0.75
+  rules:
+    - field_exists: $.conversations
+      score: 0.35
+    - field_is_list: $.conversations
+      score: 0.15
+    - any_field_exists: [$.tools, $.category, $.subcategory, $.task]
+      score: 0.20
+    - text_contains:
+        path: $.conversations[*].value
+        any: ["<think>", "<tool_call>", "<tool_response>"]
+      score: 0.30
+vars:
+  turns: {path: "$.conversations"}
+  row_id:
+    first_of: [{path: "$.id"}, {path: "$.task_id"}, {template: "row_{context.row_index}"}]
+actors:
+  - actor_id: system
+    kind: system
+  - actor_id: user
+    kind: user
+  - actor_id: assistant
+    kind: assistant
+  - actor_id: tool
+    kind: tool
+tool_registry:
+  from:
+    first_of:
+      - transform: parse_json
+        input: $.tools
+        on_error: fallback
+        fallback: []
+      - const: []
+  item:
+    name:
+      first_of: [{path: "item.name"}, {path: "item.function.name"}]
+    description:
+      first_of: [{path: "item.description"}, {path: "item.function.description"}]
+    input_schema:
+      first_of: [{path: "item.input_schema"}, {path: "item.parameters"}, {path: "item.function.parameters"}, {const: {}}]
+task:
+  task_id:
+    first_of: [{path: "$.task_id"}, {path: "$.id"}]
+  instruction:
+    first_of: [{path: "$.task"}, {path: "$.instruction"}, {path: "$.conversations[0].value"}]
+  category: {path: "$.category"}
+  subcategory: {path: "$.subcategory"}
+episodes:
+  - episode_id:
+      first_of: [{path: "$.run_id"}, {path: "$.task_id"}, {path: "$.id"}, {template: "episode_{context.row_index}"}]
+    task_id:
+      first_of: [{path: "$.task_id"}, {path: "$.id"}]
+    events:
+      - foreach: {var: turns}
+        as: turn
+        index_as: i
+        emit:
+          event_id: {template: "evt_{i:04d}"}
+          idx: {var: i}
+          event_type:
+            transform: role_to_event_type
+            input:
+              first_of: [{path: "turn.from"}, {path: "turn.role"}]
+          role:
+            transform: role_to_message_role
+            input:
+              first_of: [{path: "turn.from"}, {path: "turn.role"}]
+          actor_id:
+            transform: role_to_actor_id
+            input:
+              first_of: [{path: "turn.from"}, {path: "turn.role"}]
+          content:
+            - type: text
+              text:
+                first_of: [{path: "turn.value"}, {path: "turn.content"}, {const: ""}]
+          provenance:
+            source_field:
+              transform: source_field_for_loop
+              input: {base: conversations, index: {var: i}, field: value}
+quality:
+  required_fields: [$.conversations]
+  min_events: 1
+  require_provenance: true
+passes:
+  default: [parse-hermes-xml, canonicalize-tools, pair-tool-results, normalize-outcome, verify]
+  recommended_for_training: [parse-hermes-xml, canonicalize-tools, pair-tool-results, normalize-outcome, redact-reasoning, slice-training, verify]
+performance:
+  selector_cache: true
+  transform_cache: true
+  preferred_batch_size: 1024
+  streaming_safe: true
+  can_generate_python: true
