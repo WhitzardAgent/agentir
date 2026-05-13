@@ -73,6 +73,7 @@ def _make_event(
     action: Action | None = None,
     provenance: Provenance | None = None,
     visibility: Visibility | None = None,
+    metadata: dict | None = None,
 ) -> Event:
     """Build a minimal Event for pass testing."""
     return Event(
@@ -84,6 +85,7 @@ def _make_event(
         action=action,
         provenance=provenance,
         visibility=visibility or Visibility(),
+        metadata=metadata or {},
     )
 
 

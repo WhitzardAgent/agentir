@@ -130,6 +130,7 @@ class ExtractPatchesPass(AgentIRPass):
         patch_sources: list[tuple[str, str, str | None]] = []  # (diff_text, source_field, event_id)
 
         raw_record = record.raw.get("record", {})
+        top_level_raw = record.raw
 
         # Source 1: OpenHands model_patch
         model_patch = raw_record.get("model_patch")
@@ -137,7 +138,7 @@ class ExtractPatchesPass(AgentIRPass):
             patch_sources.append((model_patch.strip(), "record.model_patch", None))
 
         # Source 2: Claude Code gitdiff
-        gitdiff = raw_record.get("gitdiff")
+        gitdiff = raw_record.get("gitdiff") or top_level_raw.get("gitdiff")
         if gitdiff and isinstance(gitdiff, str) and gitdiff.strip():
             patch_sources.append((gitdiff.strip(), "record.gitdiff", None))
 

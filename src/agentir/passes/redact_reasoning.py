@@ -18,7 +18,7 @@ class RedactReasoningPass(AgentIRPass):
     def run(self, record: AgentIRRecord, ctx: PassContext) -> PassResult:
         policy_str = ctx.reasoning_policy or "metadata_only"
         try:
-            policy = ReasoningPolicy(policy_str.upper())
+            policy = ReasoningPolicy(policy_str.lower())
         except ValueError:
             policy = ReasoningPolicy.METADATA_ONLY
 

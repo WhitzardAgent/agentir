@@ -29,7 +29,7 @@ from agentir.ir.base import (
 from agentir.ir.content import ContentBlock
 from agentir.ir.episode import Episode
 from agentir.ir.event import Event
-from agentir.ir.observation import Observation
+from agentir.ir.observation import Observation, ObservationKind
 from agentir.ir.outcome import Outcome
 from agentir.ir.provenance import Provenance
 from agentir.ir.record import AgentIRRecord
@@ -408,7 +408,7 @@ class TestOpenHandsBackend:
     def test_emits_trajectory_list(self) -> None:
         """The OpenHands backend produces a trajectory list."""
         event = _make_event(
-            event_id="evt-1", idx=Obama0,
+            event_id="evt-1", idx=0,
             event_type=EventType.USER_MESSAGE,
             role=MessageRole.USER,
             content=[_text_block("Fix the bug.")],

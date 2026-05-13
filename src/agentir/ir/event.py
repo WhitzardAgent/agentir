@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from agentir.ir.action import Action
 from agentir.ir.base import EventType, MessageRole
@@ -16,6 +16,8 @@ from agentir.ir.visibility import Visibility
 
 class Event(BaseModel):
     """A single event in a trajectory."""
+
+    model_config = ConfigDict(extra="allow")
 
     event_id: str
     idx: int

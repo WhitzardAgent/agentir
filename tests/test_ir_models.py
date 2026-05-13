@@ -498,7 +498,14 @@ class TestJSONSchema:
         assert "source" in schema["properties"]
 
         level_prop = schema["properties"]["level"]
-        level_enum = level_prop.get("enum", level_prop.get("anyOf", []))
+        # Pydantic v2 uses $ref for enums; resolve through $defs
+        ref = level_prop.get("$ref", "")
+        if ref.startswith("#/$defs/"):
+            def_name = ref[len("#/$defs/"):]
+            level_schema = schema.get("$defs", {}).get(def_name, {})
+            level_enum = level_schema.get("enum", [])
+        else:
+            level_enum = level_prop.get("enum", level_prop.get("anyOf", []))
 
         if isinstance(level_enum, list):
             level_values = [
@@ -771,6 +778,7 @@ class TestEventConstruction:
     def test_event_with_contentblocks_mixed_types(self):
         blocks = [
             ContentBlock(type=ContentType.TEXT, text="Check this:"),
+            ContentBlock(type=ContentType.JSON, json_value={"status": "ok"}),
             ContentBlock(
                 type=ContentType.IMAGE,
                 mime_type="image/png",
