@@ -2,7 +2,7 @@
 license: apache-2.0
 task_categories:
 - text-generation
-- text2text-generation
+- text-generation
 tags:
 - agent
 - trajectory
@@ -19,7 +19,7 @@ tags:
 
 ## About AgentIR Collection
 
-This dataset is part of the **[AgentIR Collection](https://huggingface.co/agentir)**.
+This dataset is part of the **[AgentIR Collection](https://huggingface.co/WhitzardAgent)**.
 AgentIR is an open-source compiler infrastructure for agentic trajectories (like LLVM/MLIR, but for agent traces).
 Using AgentIR, you can convert any source trajectory format into multiple target formats.
 
@@ -31,7 +31,7 @@ Using AgentIR, you can convert any source trajectory format into multiple target
 
 - **Source dataset:** [nlile/misc-merged-claude-code-traces-v1](https://huggingface.co/datasets/nlile/misc-merged-claude-code-traces-v1)
 - **Target format:** OpenHands Native trajectory format
-- **Rows:** ~40,000
+- **Rows:** 32,133
 - **License:** apache-2.0
 
 
@@ -78,8 +78,8 @@ parse-claude-log, canonicalize-tools, pair-tool-results, extract-patches, normal
 
 | Metric | Value |
 |---|---|
-| Source records | ~40,000 |
-| Source events | ~400,000 (estimated) |
+| Source records | 32,133 |
+| Source events | 6,760 (estimated) |
 | Success rate | 100% (0 failures) |
 | Throughput | 1,811 records/sec (AgentTrove full benchmark) |
 
@@ -88,7 +88,7 @@ parse-claude-log, canonicalize-tools, pair-tool-results, extract-patches, normal
 ```python
 from datasets import load_dataset
 
-ds = load_dataset("agentir/ClaudeCode-OpenHands", split="train")
+ds = load_dataset("WhitzardAgent/ClaudeCode-OpenHands", split="train")
 print(ds[0])
 ```
 

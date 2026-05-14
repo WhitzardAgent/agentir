@@ -152,20 +152,20 @@ Verified on the full **1.7M-record AgentTrove dataset** (28M+ events):
 
 ## HuggingFace Datasets
 
-Auto-converted trajectory datasets are available on HuggingFace under the [WhitzardAgent](https://huggingface.co/WhitzardAgent) organization:
+Auto-converted trajectory datasets are available on HuggingFace under the [WhitzardAgent](https://huggingface.co/WhitzardAgent) organization as part of the [AgentIR Collection](https://huggingface.co/collections/WhitzardAgent/agentir-collection-6a05bbc07ccbd6e92acd596a):
 
 | Dataset | Format | Records |
 |---|---|---|
-| [AgentTrove-AgentIR](https://huggingface.co/datasets/WhitzardAgent/AgentTrove-AgentIR) | AgentIR Canonical | 44,893 |
-| [AgentTrove-OpenAI](https://huggingface.co/datasets/WhitzardAgent/AgentTrove-OpenAI) | OpenAI Chat Messages | 44,893 |
-| [AgentTrove-Anthropic](https://huggingface.co/datasets/WhitzardAgent/AgentTrove-Anthropic) | Anthropic Tools API | 44,893 |
-| [AgentTrove-OpenHands](https://huggingface.co/datasets/WhitzardAgent/AgentTrove-OpenHands) | OpenHands Trajectory | 44,893 |
-| [AgentTrove-Hermes](https://huggingface.co/datasets/WhitzardAgent/AgentTrove-Hermes) | Hermes XML | 44,893 |
-| [ClaudeCode-AgentIR](https://huggingface.co/datasets/WhitzardAgent/ClaudeCode-AgentIR) | AgentIR Canonical | 845 |
-| [ClaudeCode-OpenAI](https://huggingface.co/datasets/WhitzardAgent/ClaudeCode-OpenAI) | OpenAI Chat Messages | 845 |
-| [ClaudeCode-Anthropic](https://huggingface.co/datasets/WhitzardAgent/ClaudeCode-Anthropic) | Anthropic Tools API | 845 |
-| [ClaudeCode-OpenHands](https://huggingface.co/datasets/WhitzardAgent/ClaudeCode-OpenHands) | OpenHands Trajectory | 845 |
-| [ClaudeCode-Hermes](https://huggingface.co/datasets/WhitzardAgent/ClaudeCode-Hermes) | Hermes XML | 845 |
+| [AgentTrove-AgentIR](https://huggingface.co/datasets/WhitzardAgent/AgentTrove-AgentIR) | AgentIR Canonical | 50,000 |
+| [AgentTrove-OpenAI](https://huggingface.co/datasets/WhitzardAgent/AgentTrove-OpenAI) | OpenAI Chat Messages | 50,000 |
+| [AgentTrove-Anthropic](https://huggingface.co/datasets/WhitzardAgent/AgentTrove-Anthropic) | Anthropic Tools API | 50,000 |
+| [AgentTrove-OpenHands](https://huggingface.co/datasets/WhitzardAgent/AgentTrove-OpenHands) | OpenHands Trajectory | 50,000 |
+| [AgentTrove-Hermes](https://huggingface.co/datasets/WhitzardAgent/AgentTrove-Hermes) | Hermes XML | 50,000 |
+| [ClaudeCode-AgentIR](https://huggingface.co/datasets/WhitzardAgent/ClaudeCode-AgentIR) | AgentIR Canonical | 32,133 |
+| [ClaudeCode-OpenAI](https://huggingface.co/datasets/WhitzardAgent/ClaudeCode-OpenAI) | OpenAI Chat Messages | 32,133 |
+| [ClaudeCode-Anthropic](https://huggingface.co/datasets/WhitzardAgent/ClaudeCode-Anthropic) | Anthropic Tools API | 32,133 |
+| [ClaudeCode-OpenHands](https://huggingface.co/datasets/WhitzardAgent/ClaudeCode-OpenHands) | OpenHands Trajectory | 32,133 |
+| [ClaudeCode-Hermes](https://huggingface.co/datasets/WhitzardAgent/ClaudeCode-Hermes) | Hermes XML | 32,133 |
 
 ```python
 from datasets import load_dataset
@@ -174,8 +174,8 @@ from datasets import load_dataset
 ds = load_dataset("WhitzardAgent/AgentTrove-OpenAI", split="train")
 ```
 
-AgentTrove datasets were auto-converted by AgentIR with 100% success rate (0 failures, 1,585 rec/sec).
-ClaudeCode datasets are partial (845/32,133) due to nested content blocks not yet supported by the frontend; a fix is in progress.
+All datasets were auto-converted by AgentIR with 100% success rate (0 failures).
+AgentTrove: 50,000 records at 1,281 rec/sec. ClaudeCode: 32,133 records at 317 rec/sec (full dataset, 100% parse rate).
 
 ---
 

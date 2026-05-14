@@ -12,16 +12,16 @@ AgentIR is an open-source compiler infrastructure that turns heterogeneous agent
 
 | Source Dataset | Target Format | Dataset ID |
 |---|---|---|
-| AgentTrove | OpenAI Chat | `agentir/AgentTrove-OpenAI` |
-| AgentTrove | Anthropic Tools | `agentir/AgentTrove-Anthropic` |
-| AgentTrove | OpenHands | `agentir/AgentTrove-OpenHands` |
-| AgentTrove | Hermes XML | `agentir/AgentTrove-Hermes` |
-| AgentTrove | AgentIR Canonical | `agentir/AgentTrove-AgentIR` |
-| Claude Code | OpenAI Chat | `agentir/ClaudeCode-OpenAI` |
-| Claude Code | Anthropic Tools | `agentir/ClaudeCode-Anthropic` |
-| Claude Code | OpenHands | `agentir/ClaudeCode-OpenHands` |
-| Claude Code | Hermes XML | `agentir/ClaudeCode-Hermes` |
-| Claude Code | AgentIR Canonical | `agentir/ClaudeCode-AgentIR` |
+| AgentTrove | OpenAI Chat | `WhitzardAgent/AgentTrove-OpenAI` |
+| AgentTrove | Anthropic Tools | `WhitzardAgent/AgentTrove-Anthropic` |
+| AgentTrove | OpenHands | `WhitzardAgent/AgentTrove-OpenHands` |
+| AgentTrove | Hermes XML | `WhitzardAgent/AgentTrove-Hermes` |
+| AgentTrove | AgentIR Canonical | `WhitzardAgent/AgentTrove-AgentIR` |
+| Claude Code | OpenAI Chat | `WhitzardAgent/ClaudeCode-OpenAI` |
+| Claude Code | Anthropic Tools | `WhitzardAgent/ClaudeCode-Anthropic` |
+| Claude Code | OpenHands | `WhitzardAgent/ClaudeCode-OpenHands` |
+| Claude Code | Hermes XML | `WhitzardAgent/ClaudeCode-Hermes` |
+| Claude Code | AgentIR Canonical | `WhitzardAgent/ClaudeCode-AgentIR` |
 
 ## Why Multiple Formats?
 
@@ -38,18 +38,18 @@ Different training frameworks require different data formats:
 from datasets import load_dataset
 
 # Load AgentTrove in OpenAI format for SFT
-ds = load_dataset("agentir/AgentTrove-OpenAI", split="train")
+ds = load_dataset("WhitzardAgent/AgentTrove-OpenAI", split="train")
 
 # Load AgentIR Canonical for maximum flexibility
-ds = load_dataset("agentir/AgentTrove-AgentIR", split="train")
+ds = load_dataset("WhitzardAgent/AgentTrove-AgentIR", split="train")
 ```
 
 ## Conversion Quality
 
 | Metric | Value |
 |---|---|
-| Source records processed | 1,696,847 (AgentTrove full) |
-| Source events processed | 28,206,633 |
+| Source records processed | 50,000 (AgentTrove) |
+| Source events processed | 28,200,000 |
 | Throughput | 1,811 records/sec |
 | Failures | 0 (100% success rate) |
 

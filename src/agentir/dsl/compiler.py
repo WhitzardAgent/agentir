@@ -43,6 +43,79 @@ from agentir.ir.observation import Observation, ObservationKind
 
 
 # ---------------------------------------------------------------------------
+# Content block construction
+# ---------------------------------------------------------------------------
+
+
+def _raw_to_content_blocks(content_raw: Any) -> list[ContentBlock]:
+    """Convert raw content from DSL evaluation into ContentBlock instances.
+
+    Handles: str, list of str, list of dicts (Anthropic-style content blocks),
+    nested lists, and None.
+    """
+    if content_raw is None:
+        return []
+    if isinstance(content_raw, str):
+        if not content_raw:
+            return []
+        return [ContentBlock(type=ContentType.TEXT, text=content_raw)]
+
+    blocks: list[ContentBlock] = []
+    if isinstance(content_raw, list):
+        for cb in content_raw:
+            if isinstance(cb, str):
+                if cb:
+                    blocks.append(ContentBlock(type=ContentType.TEXT, text=cb))
+            elif isinstance(cb, ContentBlock):
+                blocks.append(cb)
+            elif isinstance(cb, dict):
+                item_type = cb.get("type", "text")
+                if item_type == "text":
+                    text_val = cb.get("text", "")
+                    # Handle nested list in text field (rare Anthropic artifact)
+                    if isinstance(text_val, list):
+                        text_val = json.dumps(text_val, ensure_ascii=False)
+                    blocks.append(
+                        ContentBlock(type=ContentType.TEXT, text=str(text_val) if text_val is not None else "")
+                    )
+                elif item_type == "tool_use":
+                    blocks.append(
+                        ContentBlock(
+                            type=ContentType.JSON,
+                            json_value=cb,
+                            metadata={"tool_use": True, "tool_name": cb.get("name")},
+                        )
+                    )
+                elif item_type == "tool_result":
+                    blocks.append(
+                        ContentBlock(
+                            type=ContentType.JSON,
+                            json_value=cb,
+                            metadata={"tool_result": True, "tool_use_id": cb.get("tool_use_id")},
+                        )
+                    )
+                elif item_type in ("thinking", "reasoning"):
+                    text_val = cb.get("thinking", cb.get("text", ""))
+                    if isinstance(text_val, list):
+                        text_val = json.dumps(text_val, ensure_ascii=False)
+                    blocks.append(
+                        ContentBlock(
+                            type=ContentType.TEXT,
+                            text=str(text_val) if text_val else "",
+                            metadata={"reasoning": True},
+                        )
+                    )
+                else:
+                    # Generic dict content block
+                    blocks.append(ContentBlock(type=ContentType.JSON, json_value=cb))
+    else:
+        # Fallback: serialise to text
+        blocks.append(ContentBlock(type=ContentType.TEXT, text=str(content_raw)))
+
+    return blocks
+
+
+# ---------------------------------------------------------------------------
 # Built-in transform maps
 # ---------------------------------------------------------------------------
 
@@ -625,26 +698,7 @@ class RuntimeDSLFrontend(BaseFrontend):
                     content_raw = _eval_value(
                         emit_spec.content, sample_dict, loop_vars, eval_context
                     )
-                    content_blocks: list[ContentBlock] = []
-                    if isinstance(content_raw, str):
-                        content_blocks.append(
-                            ContentBlock(type=ContentType.TEXT, text=content_raw)
-                        )
-                    elif isinstance(content_raw, list):
-                        for cb in content_raw:
-                            if isinstance(cb, str):
-                                content_blocks.append(
-                                    ContentBlock(type=ContentType.TEXT, text=cb)
-                                )
-                            elif isinstance(cb, ContentBlock):
-                                content_blocks.append(cb)
-                            elif isinstance(cb, dict):
-                                content_blocks.append(
-                                    ContentBlock(
-                                        type=ContentType(cb.get("type", "text")),
-                                        text=cb.get("text"),
-                                    )
-                                )
+                    content_blocks: list[ContentBlock] = _raw_to_content_blocks(content_raw)
 
                     # action
                     action_raw = _eval_value(

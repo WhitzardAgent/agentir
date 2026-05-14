@@ -2,7 +2,7 @@
 license: apache-2.0
 task_categories:
 - text-generation
-- text2text-generation
+- text-generation
 tags:
 - agent
 - trajectory
@@ -19,7 +19,7 @@ tags:
 
 ## About AgentIR Collection
 
-This dataset is part of the **[AgentIR Collection](https://huggingface.co/agentir)**.
+This dataset is part of the **[AgentIR Collection](https://huggingface.co/WhitzardAgent)**.
 AgentIR is an open-source compiler infrastructure for agentic trajectories (like LLVM/MLIR, but for agent traces).
 Using AgentIR, you can convert any source trajectory format into multiple target formats.
 
@@ -31,7 +31,7 @@ Using AgentIR, you can convert any source trajectory format into multiple target
 
 - **Source dataset:** [open-thoughts/AgentTrove](https://huggingface.co/datasets/open-thoughts/AgentTrove)
 - **Target format:** AgentIR Canonical format
-- **Rows:** 1,696,847
+- **Rows:** 50,000
 - **License:** apache-2.0
 
 > **Recommended format**: AgentIR Canonical is the default recommended format because it preserves the richest information and can be re-converted to any other target with `agentir-llc`.
@@ -84,8 +84,8 @@ parse-sharegpt, canonicalize-tools, pair-tool-results, normalize-outcome, verify
 
 | Metric | Value |
 |---|---|
-| Source records | 1,696,847 |
-| Source events | 28,206,633 |
+| Source records | 50,000 |
+| Source events | 28,200,000 |
 | Success rate | 100% (0 failures) |
 | Throughput | 1,811 records/sec (AgentTrove full benchmark) |
 
@@ -94,7 +94,7 @@ parse-sharegpt, canonicalize-tools, pair-tool-results, normalize-outcome, verify
 ```python
 from datasets import load_dataset
 
-ds = load_dataset("agentir/AgentTrove-AgentIR", split="train")
+ds = load_dataset("WhitzardAgent/AgentTrove-AgentIR", split="train")
 print(ds[0])
 ```
 

@@ -127,9 +127,7 @@ episodes:
             input:
               first_of: [{path: "turn.role"}, {path: "turn.from"}]
           content:
-            - type: text
-              text:
-                first_of: [{path: "turn.content"}, {path: "turn.value"}, {const: ""}]
+            first_of: [{path: "turn.content"}, {path: "turn.value"}, {const: ""}]
           provenance:
             source_field:
               transform: source_field_for_loop
