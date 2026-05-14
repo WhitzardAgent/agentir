@@ -150,6 +150,35 @@ Verified on the full **1.7M-record AgentTrove dataset** (28M+ events):
 
 ---
 
+## HuggingFace Datasets
+
+Auto-converted trajectory datasets are available on HuggingFace under the [WhitzardAgent](https://huggingface.co/WhitzardAgent) organization:
+
+| Dataset | Format | Records |
+|---|---|---|
+| [AgentTrove-AgentIR](https://huggingface.co/datasets/WhitzardAgent/AgentTrove-AgentIR) | AgentIR Canonical | 44,893 |
+| [AgentTrove-OpenAI](https://huggingface.co/datasets/WhitzardAgent/AgentTrove-OpenAI) | OpenAI Chat Messages | 44,893 |
+| [AgentTrove-Anthropic](https://huggingface.co/datasets/WhitzardAgent/AgentTrove-Anthropic) | Anthropic Tools API | 44,893 |
+| [AgentTrove-OpenHands](https://huggingface.co/datasets/WhitzardAgent/AgentTrove-OpenHands) | OpenHands Trajectory | 44,893 |
+| [AgentTrove-Hermes](https://huggingface.co/datasets/WhitzardAgent/AgentTrove-Hermes) | Hermes XML | 44,893 |
+| [ClaudeCode-AgentIR](https://huggingface.co/datasets/WhitzardAgent/ClaudeCode-AgentIR) | AgentIR Canonical | 845 |
+| [ClaudeCode-OpenAI](https://huggingface.co/datasets/WhitzardAgent/ClaudeCode-OpenAI) | OpenAI Chat Messages | 845 |
+| [ClaudeCode-Anthropic](https://huggingface.co/datasets/WhitzardAgent/ClaudeCode-Anthropic) | Anthropic Tools API | 845 |
+| [ClaudeCode-OpenHands](https://huggingface.co/datasets/WhitzardAgent/ClaudeCode-OpenHands) | OpenHands Trajectory | 845 |
+| [ClaudeCode-Hermes](https://huggingface.co/datasets/WhitzardAgent/ClaudeCode-Hermes) | Hermes XML | 845 |
+
+```python
+from datasets import load_dataset
+
+# Load in your preferred format
+ds = load_dataset("WhitzardAgent/AgentTrove-OpenAI", split="train")
+```
+
+AgentTrove datasets were auto-converted by AgentIR with 100% success rate (0 failures, 1,585 rec/sec).
+ClaudeCode datasets are partial (845/32,133) due to nested content blocks not yet supported by the frontend; a fix is in progress.
+
+---
+
 ## Contributing
 
 Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on development setup, coding standards, testing requirements, and the pull-request process.
