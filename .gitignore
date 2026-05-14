@@ -28,12 +28,17 @@ uv.lock
 
 # Output
 out/
+output/
+data/
 *.raw.air.jsonl
 *.parsed.air.jsonl
 *.canonical.air.jsonl
 *.air.parquet
 *.loss.md
 *.verify.md
+
+# Local planning
+pr_plan.md
 
 # OS
 .DS_Store
