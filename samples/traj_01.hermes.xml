@@ -1,0 +1,13 @@
+{
+  "conversations": [
+    {
+      "from": "human",
+      "value": "What is the capital of France?"
+    },
+    {
+      "from": "gpt",
+      "value": "The capital of France is Paris."
+    }
+  ],
+  "tools": "[]"
+}

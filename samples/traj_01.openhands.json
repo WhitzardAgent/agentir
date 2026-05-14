@@ -1,0 +1,15 @@
+{
+  "trajectory_id": "traj_01",
+  "repo": "example",
+  "trajectory": [
+    {
+      "role": "user",
+      "content": "What is the capital of France?"
+    },
+    {
+      "role": "assistant",
+      "content": "The capital of France is Paris."
+    }
+  ],
+  "model_patch": ""
+}

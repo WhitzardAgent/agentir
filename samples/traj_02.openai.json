@@ -1,0 +1,35 @@
+{
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful assistant with access to tools."
+    },
+    {
+      "role": "user",
+      "content": "What is the weather in Tokyo?"
+    },
+    {
+      "role": "assistant",
+      "content": "Let me check the weather for you.",
+      "tool_calls": [
+        {
+          "id": "call_weather_1",
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "arguments": "{\"city\": \"Tokyo\", \"unit\": \"celsius\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_weather_1",
+      "content": "{\"temperature\": 22, \"condition\": \"partly_cloudy\"}"
+    },
+    {
+      "role": "assistant",
+      "content": "The weather in Tokyo is currently partly cloudy with a temperature of 22°C."
+    }
+  ]
+}

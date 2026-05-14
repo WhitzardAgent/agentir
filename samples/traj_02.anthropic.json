@@ -1,0 +1,89 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "You are a helpful assistant with access to tools."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "What is the weather in Tokyo?"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Let me check the weather for you."
+        },
+        {
+          "type": "tool_use",
+          "id": "call_weather_1",
+          "name": "get_weather",
+          "input": {
+            "city": "Tokyo",
+            "unit": "celsius"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "tool_result",
+          "tool_use_id": "call_weather_1",
+          "content": [
+            {
+              "type": "text",
+              "text": "{\"temperature\": 22, \"condition\": \"partly_cloudy\"}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "The weather in Tokyo is currently partly cloudy with a temperature of 22°C."
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "name": "get_weather",
+      "description": "Get the current weather for a city",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string",
+            "description": "City name"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "celsius",
+              "fahrenheit"
+            ]
+          }
+        },
+        "required": [
+          "city"
+        ]
+      }
+    }
+  ]
+}

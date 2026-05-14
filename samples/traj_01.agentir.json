@@ -1,0 +1,73 @@
+{
+  "ir_version": "0.1.0",
+  "record_id": "traj_01",
+  "level": "canonical",
+  "source": {
+    "dataset": "example",
+    "framework": "test"
+  },
+  "tool_registry": [],
+  "actors": [],
+  "episodes": [
+    {
+      "episode_id": "ep_01",
+      "segments": [],
+      "events": [
+        {
+          "event_id": "evt_0000",
+          "idx": 0,
+          "event_type": "user_message",
+          "role": "user",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [
+            {
+              "type": "text",
+              "text": "What is the capital of France?",
+              "metadata": {}
+            }
+          ],
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        },
+        {
+          "event_id": "evt_0001",
+          "idx": 1,
+          "event_type": "assistant_message",
+          "role": "assistant",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [
+            {
+              "type": "text",
+              "text": "The capital of France is Paris.",
+              "metadata": {}
+            }
+          ],
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        }
+      ],
+      "state_timeline": [],
+      "metadata": {}
+    }
+  ],
+  "artifacts": [],
+  "diagnostics": [],
+  "raw": {},
+  "metadata": {}
+}

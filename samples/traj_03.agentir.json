@@ -1,0 +1,97 @@
+{
+  "ir_version": "0.1.0",
+  "record_id": "traj_03",
+  "level": "canonical",
+  "source": {
+    "dataset": "example",
+    "framework": "test"
+  },
+  "tool_registry": [],
+  "actors": [],
+  "episodes": [
+    {
+      "episode_id": "ep_03",
+      "segments": [],
+      "events": [
+        {
+          "event_id": "evt_0000",
+          "idx": 0,
+          "event_type": "user_message",
+          "role": "user",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [
+            {
+              "type": "text",
+              "text": "Prove that the square root of 2 is irrational.",
+              "metadata": {}
+            }
+          ],
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        },
+        {
+          "event_id": "evt_0001",
+          "idx": 1,
+          "event_type": "reasoning",
+          "role": "assistant",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [
+            {
+              "type": "text",
+              "text": "I'll use proof by contradiction. Assume sqrt(2) is rational, so sqrt(2) = p/q where p and q are coprime integers.",
+              "metadata": {}
+            }
+          ],
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        },
+        {
+          "event_id": "evt_0002",
+          "idx": 2,
+          "event_type": "assistant_message",
+          "role": "assistant",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [
+            {
+              "type": "text",
+              "text": "By contradiction: assume √2 = p/q in lowest terms. Then 2 = p²/q², so p² = 2q². Thus p² is even, so p is even. Write p = 2k. Then 4k² = 2q², so q² = 2k², meaning q is also even. This contradicts p/q being in lowest terms. Therefore √2 is irrational.",
+              "metadata": {}
+            }
+          ],
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        }
+      ],
+      "state_timeline": [],
+      "metadata": {}
+    }
+  ],
+  "artifacts": [],
+  "diagnostics": [],
+  "raw": {},
+  "metadata": {}
+}

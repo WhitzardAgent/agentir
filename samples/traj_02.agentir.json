@@ -1,0 +1,196 @@
+{
+  "ir_version": "0.1.0",
+  "record_id": "traj_02",
+  "level": "canonical",
+  "source": {
+    "dataset": "example",
+    "framework": "test"
+  },
+  "tool_registry": [
+    {
+      "tool_id": "tool_weather",
+      "name": "get_weather",
+      "description": "Get the current weather for a city",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string",
+            "description": "City name"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "celsius",
+              "fahrenheit"
+            ]
+          }
+        },
+        "required": [
+          "city"
+        ]
+      },
+      "output_schema": {},
+      "metadata": {}
+    }
+  ],
+  "actors": [],
+  "episodes": [
+    {
+      "episode_id": "ep_02",
+      "segments": [],
+      "events": [
+        {
+          "event_id": "evt_0000",
+          "idx": 0,
+          "event_type": "system_message",
+          "role": "system",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [
+            {
+              "type": "text",
+              "text": "You are a helpful assistant with access to tools.",
+              "metadata": {}
+            }
+          ],
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        },
+        {
+          "event_id": "evt_0001",
+          "idx": 1,
+          "event_type": "user_message",
+          "role": "user",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [
+            {
+              "type": "text",
+              "text": "What is the weather in Tokyo?",
+              "metadata": {}
+            }
+          ],
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        },
+        {
+          "event_id": "evt_0002",
+          "idx": 2,
+          "event_type": "tool_call",
+          "role": "assistant",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [
+            {
+              "type": "text",
+              "text": "Let me check the weather for you.",
+              "metadata": {}
+            }
+          ],
+          "action": {
+            "kind": "generic_tool",
+            "tool_name": "get_weather",
+            "tool_call_id": "call_weather_1",
+            "arguments": {
+              "city": "Tokyo",
+              "unit": "celsius"
+            },
+            "normalized_arguments": {},
+            "call_style": "native_tool_call",
+            "side_effect_level": "read_only",
+            "metadata": {}
+          },
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        },
+        {
+          "event_id": "evt_0003",
+          "idx": 3,
+          "event_type": "tool_result",
+          "role": "tool",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [],
+          "action": {
+            "kind": "generic_tool",
+            "tool_call_id": "call_weather_1",
+            "arguments": {},
+            "normalized_arguments": {},
+            "call_style": "unknown",
+            "side_effect_level": "unknown",
+            "metadata": {}
+          },
+          "observation": {
+            "kind": "tool_json",
+            "content": [],
+            "stdout": "{\"temperature\": 22, \"condition\": \"partly_cloudy\"}",
+            "truncated": false,
+            "artifact_ids": [],
+            "metadata": {}
+          },
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        },
+        {
+          "event_id": "evt_0004",
+          "idx": 4,
+          "event_type": "assistant_message",
+          "role": "assistant",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [
+            {
+              "type": "text",
+              "text": "The weather in Tokyo is currently partly cloudy with a temperature of 22°C.",
+              "metadata": {}
+            }
+          ],
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        }
+      ],
+      "state_timeline": [],
+      "metadata": {}
+    }
+  ],
+  "artifacts": [],
+  "diagnostics": [],
+  "raw": {},
+  "metadata": {}
+}

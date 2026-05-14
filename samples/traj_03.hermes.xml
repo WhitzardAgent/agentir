@@ -1,0 +1,17 @@
+{
+  "conversations": [
+    {
+      "from": "human",
+      "value": "Prove that the square root of 2 is irrational."
+    },
+    {
+      "from": "gpt",
+      "value": "\nI'll use proof by contradiction. Assume sqrt(2) is rational, so sqrt(2) = p/q where p and q are coprime integers.\n</think>"
+    },
+    {
+      "from": "gpt",
+      "value": "By contradiction: assume √2 = p/q in lowest terms. Then 2 = p²/q², so p² = 2q². Thus p² is even, so p is even. Write p = 2k. Then 4k² = 2q², so q² = 2k², meaning q is also even. This contradicts p/q being in lowest terms. Therefore √2 is irrational."
+    }
+  ],
+  "tools": "[]"
+}

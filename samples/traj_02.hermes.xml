@@ -1,0 +1,29 @@
+{
+  "conversations": [
+    {
+      "from": "system",
+      "value": "You are a helpful assistant with access to tools."
+    },
+    {
+      "from": "human",
+      "value": "What is the weather in Tokyo?"
+    },
+    {
+      "from": "gpt",
+      "value": "Let me check the weather for you.\n༄get_weather({\"city\": \"Tokyo\", \"unit\": \"celsius\"})༄"
+    },
+    {
+      "from": "tool",
+      "value": "{\"temperature\": 22, \"condition\": \"partly_cloudy\"}"
+    },
+    {
+      "from": "tool",
+      "value": "{\"temperature\": 22, \"condition\": \"partly_cloudy\"}"
+    },
+    {
+      "from": "gpt",
+      "value": "The weather in Tokyo is currently partly cloudy with a temperature of 22°C."
+    }
+  ],
+  "tools": "[{\"name\": \"get_weather\", \"description\": \"Get the current weather for a city\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\", \"description\": \"City name\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"city\"]}}]"
+}

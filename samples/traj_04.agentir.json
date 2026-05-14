@@ -1,0 +1,259 @@
+{
+  "ir_version": "0.1.0",
+  "record_id": "traj_04",
+  "level": "canonical",
+  "source": {
+    "dataset": "example",
+    "framework": "test"
+  },
+  "tool_registry": [],
+  "actors": [],
+  "episodes": [
+    {
+      "episode_id": "ep_04",
+      "segments": [],
+      "events": [
+        {
+          "event_id": "evt_0000",
+          "idx": 0,
+          "event_type": "system_message",
+          "role": "system",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [
+            {
+              "type": "text",
+              "text": "You are a coding agent. Fix bugs in the provided repository.",
+              "metadata": {}
+            }
+          ],
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        },
+        {
+          "event_id": "evt_0001",
+          "idx": 1,
+          "event_type": "user_message",
+          "role": "user",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [
+            {
+              "type": "text",
+              "text": "Fix the off-by-one error in the range check in utils.py",
+              "metadata": {}
+            }
+          ],
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        },
+        {
+          "event_id": "evt_0002",
+          "idx": 2,
+          "event_type": "terminal_command",
+          "role": "assistant",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [],
+          "action": {
+            "kind": "terminal",
+            "tool_name": "terminal",
+            "tool_call_id": "call_term_1",
+            "arguments": {
+              "command": "grep -n 'range' utils.py"
+            },
+            "normalized_arguments": {},
+            "call_style": "native_tool_call",
+            "side_effect_level": "read_only",
+            "metadata": {}
+          },
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        },
+        {
+          "event_id": "evt_0003",
+          "idx": 3,
+          "event_type": "terminal_output",
+          "role": "tool",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [],
+          "observation": {
+            "kind": "terminal",
+            "content": [],
+            "stdout": "15:    for i in range(0, len(items) - 1):\n16:        result.append(items[i])\n",
+            "truncated": false,
+            "artifact_ids": [],
+            "metadata": {}
+          },
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        },
+        {
+          "event_id": "evt_0004",
+          "idx": 4,
+          "event_type": "file_patch",
+          "role": "assistant",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [
+            {
+              "type": "diff",
+              "text": "diff --git a/utils.py b/utils.py\n--- a/utils.py\n+++ b/utils.py\n@@ -12,7 +12,7 @@\n-    for i in range(0, len(items) - 1):\n+    for i in range(0, len(items)):\n         result.append(items[i])\n",
+              "metadata": {}
+            }
+          ],
+          "action": {
+            "kind": "file_patch",
+            "tool_name": "file_patch",
+            "tool_call_id": "call_patch_1",
+            "arguments": {
+              "path": "utils.py"
+            },
+            "normalized_arguments": {},
+            "call_style": "native_tool_call",
+            "side_effect_level": "workspace_write",
+            "metadata": {}
+          },
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        },
+        {
+          "event_id": "evt_0005",
+          "idx": 5,
+          "event_type": "terminal_command",
+          "role": "assistant",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [],
+          "action": {
+            "kind": "terminal",
+            "tool_name": "terminal",
+            "tool_call_id": "call_term_2",
+            "arguments": {
+              "command": "python -m pytest tests/test_utils.py -v"
+            },
+            "normalized_arguments": {},
+            "call_style": "native_tool_call",
+            "side_effect_level": "read_only",
+            "metadata": {}
+          },
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        },
+        {
+          "event_id": "evt_0006",
+          "idx": 6,
+          "event_type": "terminal_output",
+          "role": "tool",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [],
+          "observation": {
+            "kind": "terminal",
+            "content": [],
+            "stdout": "test_range_check ... ok\n1 passed in 0.02s\n",
+            "truncated": false,
+            "artifact_ids": [],
+            "metadata": {}
+          },
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        },
+        {
+          "event_id": "evt_0007",
+          "idx": 7,
+          "event_type": "assistant_message",
+          "role": "assistant",
+          "parent_event_ids": [],
+          "child_event_ids": [],
+          "content": [
+            {
+              "type": "text",
+              "text": "I fixed the off-by-one error in utils.py by changing `range(0, len(items) - 1)` to `range(0, len(items))`. All tests pass.",
+              "metadata": {}
+            }
+          ],
+          "artifacts": [],
+          "visibility": {
+            "trainable": true,
+            "contains_reasoning": false,
+            "contains_sensitive": false,
+            "redaction_status": "none"
+          },
+          "raw": {},
+          "metadata": {}
+        }
+      ],
+      "state_timeline": [],
+      "metadata": {}
+    }
+  ],
+  "artifacts": [
+    {
+      "artifact_id": "patch_01",
+      "kind": "patch",
+      "content": "diff --git a/utils.py b/utils.py\n--- a/utils.py\n+++ b/utils.py\n@@ -12,7 +12,7 @@\n-    for i in range(0, len(items) - 1):\n+    for i in range(0, len(items)):\n         result.append(items[i])\n",
+      "mime_type": "text/x-diff",
+      "metadata": {}
+    }
+  ],
+  "outcome": {
+    "status": "success",
+    "passed": true,
+    "metrics": {},
+    "metadata": {}
+  },
+  "diagnostics": [],
+  "raw": {},
+  "metadata": {}
+}

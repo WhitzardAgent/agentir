@@ -5,6 +5,7 @@ Importing this package registers all built-in backends.
 
 # Import backends to trigger registration
 from agentir.backends import (
+    anthropic_tools,  # noqa: F401
     hermes_xml,  # noqa: F401
     openai_tools,  # noqa: F401
     openhands,  # noqa: F401

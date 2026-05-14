@@ -41,7 +41,7 @@ def main(
         str,
         typer.Option(
             "--target",
-            help="Target format: sft|process-supervision|openai-tools|hermes-xml|openhands|sharegpt.",
+            help="Target format: sft|process-supervision|openai-tools|anthropic-tools|hermes-xml|openhands|sharegpt.",
             show_default=False,
         ),
     ] = ...,

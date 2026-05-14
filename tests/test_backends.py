@@ -23,19 +23,14 @@ from agentir.ir.base import (
     IRLevel,
     LoweringStatus,
     MessageRole,
-    OutcomeStatus,
-    SideEffectLevel,
 )
 from agentir.ir.content import ContentBlock
 from agentir.ir.episode import Episode
 from agentir.ir.event import Event
 from agentir.ir.observation import Observation, ObservationKind
 from agentir.ir.outcome import Outcome
-from agentir.ir.provenance import Provenance
 from agentir.ir.record import AgentIRRecord
 from agentir.ir.source import SourceRef
-from agentir.ir.visibility import Visibility
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -449,6 +444,202 @@ class TestOpenHandsBackend:
 
 
 # ---------------------------------------------------------------------------
+# AnthropicToolsBackend
+# ---------------------------------------------------------------------------
+
+from agentir.backends.anthropic_tools import AnthropicToolsBackend
+
+
+class TestAnthropicToolsBackend:
+
+    def test_tool_call_produces_tool_use_block(self) -> None:
+        """A TOOL_CALL event produces assistant message with tool_use content block."""
+        call = _make_tool_call_event(
+            event_id="tc-1", idx=1,
+            tool_name="get_weather",
+            tool_call_id="call_w1",
+            arguments={"city": "London"},
+        )
+        result_evt = _make_tool_result_event(
+            event_id="tr-1", idx=2,
+            tool_call_id="call_w1",
+            stdout="Cloudy, 15C",
+        )
+        episode = _make_episode(events=[call, result_evt])
+        record = _make_record(episodes=[episode])
+
+        backend = AnthropicToolsBackend()
+        result = backend.lower_record(record, BackendContext())
+
+        msgs = result.output["messages"]
+        assistant_msgs = [m for m in msgs if m.get("role") == "assistant"]
+        assert len(assistant_msgs) >= 1
+        content = assistant_msgs[0]["content"]
+        tool_use_blocks = [b for b in content if b.get("type") == "tool_use"]
+        assert len(tool_use_blocks) == 1
+        assert tool_use_blocks[0]["id"] == "call_w1"
+        assert tool_use_blocks[0]["name"] == "get_weather"
+        assert tool_use_blocks[0]["input"] == {"city": "London"}
+
+    def test_tool_result_produces_tool_result_block(self) -> None:
+        """A TOOL_RESULT event produces user message with tool_result content block."""
+        call = _make_tool_call_event(
+            event_id="tc-1", idx=1,
+            tool_name="calculator",
+            tool_call_id="call_123",
+            arguments={"expr": "2+2"},
+        )
+        result_evt = _make_tool_result_event(
+            event_id="tr-1", idx=2,
+            tool_call_id="call_123",
+            stdout="4",
+        )
+        episode = _make_episode(events=[call, result_evt])
+        record = _make_record(episodes=[episode])
+
+        backend = AnthropicToolsBackend()
+        result = backend.lower_record(record, BackendContext())
+
+        msgs = result.output["messages"]
+        user_msgs = [m for m in msgs if m.get("role") == "user"]
+        tool_result_msgs = [
+            m for m in user_msgs
+            if isinstance(m.get("content"), list)
+            and any(b.get("type") == "tool_result" for b in m["content"])
+        ]
+        assert len(tool_result_msgs) == 1
+        tr_block = [b for b in tool_result_msgs[0]["content"] if b.get("type") == "tool_result"][0]
+        assert tr_block["tool_use_id"] == "call_123"
+
+    def test_user_message_becomes_user_role_with_content_blocks(self) -> None:
+        """A USER_MESSAGE event maps to role='user' with content blocks list."""
+        event = _make_event(
+            event_id="evt-1", idx=0,
+            event_type=EventType.USER_MESSAGE,
+            role=MessageRole.USER,
+            content=[_text_block("Hello, what is 2+2?")],
+        )
+        episode = _make_episode(events=[event])
+        record = _make_record(episodes=[episode])
+
+        backend = AnthropicToolsBackend()
+        result = backend.lower_record(record, BackendContext())
+
+        msgs = result.output["messages"]
+        assert len(msgs) == 1
+        assert msgs[0]["role"] == "user"
+        assert isinstance(msgs[0]["content"], list)
+        assert msgs[0]["content"][0]["type"] == "text"
+        assert msgs[0]["content"][0]["text"] == "Hello, what is 2+2?"
+
+    def test_assistant_message_becomes_assistant_role_with_content_blocks(self) -> None:
+        """An ASSISTANT_MESSAGE event maps to role='assistant' with content blocks."""
+        event = _make_event(
+            event_id="evt-1", idx=0,
+            event_type=EventType.ASSISTANT_MESSAGE,
+            role=MessageRole.ASSISTANT,
+            content=[_text_block("2+2 equals 4.")],
+        )
+        episode = _make_episode(events=[event])
+        record = _make_record(episodes=[episode])
+
+        backend = AnthropicToolsBackend()
+        result = backend.lower_record(record, BackendContext())
+
+        msgs = result.output["messages"]
+        assert len(msgs) == 1
+        assert msgs[0]["role"] == "assistant"
+        assert isinstance(msgs[0]["content"], list)
+        assert msgs[0]["content"][0]["type"] == "text"
+
+    def test_tools_spec_included_in_output(self) -> None:
+        """Tool registry entries produce tools spec in the output."""
+        from agentir.ir.tool import ToolSpec
+
+        record = _make_record(
+            tool_registry=[
+                ToolSpec(
+                    tool_id="tool-1",
+                    name="read_file",
+                    description="Read a file",
+                    input_schema={"type": "object", "properties": {"path": {"type": "string"}}},
+                )
+            ],
+        )
+
+        backend = AnthropicToolsBackend()
+        result = backend.lower_record(record, BackendContext())
+
+        assert "tools" in result.output
+        assert len(result.output["tools"]) == 1
+        assert result.output["tools"][0]["name"] == "read_file"
+
+    def test_generates_toolu_id_when_missing(self) -> None:
+        """Tool call without tool_call_id generates a toolu_ prefixed ID."""
+        call = _make_event(
+            event_id="evt-tc-1", idx=1,
+            event_type=EventType.TOOL_CALL,
+            role=MessageRole.ASSISTANT,
+            action=Action(
+                kind=ActionKind.GENERIC_TOOL,
+                tool_name="bash",
+                tool_call_id="",
+                arguments={"cmd": "ls"},
+                call_style=CallStyle.NATIVE_TOOL_CALL,
+            ),
+        )
+        episode = _make_episode(events=[call])
+        record = _make_record(episodes=[episode])
+
+        backend = AnthropicToolsBackend()
+        result = backend.lower_record(record, BackendContext())
+
+        msgs = result.output["messages"]
+        assistant_msgs = [m for m in msgs if m.get("role") == "assistant"]
+        assert len(assistant_msgs) >= 1
+        tool_use_blocks = [
+            b for b in assistant_msgs[0]["content"] if b.get("type") == "tool_use"
+        ]
+        assert len(tool_use_blocks) == 1
+        assert tool_use_blocks[0]["id"].startswith("toolu_")
+
+    def test_reasoning_dropped_by_default(self) -> None:
+        """Reasoning events are dropped when include_reasoning is False."""
+        event = _make_event(
+            event_id="evt-1", idx=0,
+            event_type=EventType.REASONING,
+            role=MessageRole.ASSISTANT,
+            content=[_text_block("I should think about this...")],
+        )
+        episode = _make_episode(events=[event])
+        record = _make_record(episodes=[episode])
+
+        backend = AnthropicToolsBackend()
+        result = backend.lower_record(record, BackendContext())
+
+        assert len(result.output["messages"]) == 0
+        assert any(l.code == "LOWER003" for l in result.report.losses)
+
+    def test_reasoning_included_when_flag_set(self) -> None:
+        """Reasoning events are included when include_reasoning is True."""
+        event = _make_event(
+            event_id="evt-1", idx=0,
+            event_type=EventType.REASONING,
+            role=MessageRole.ASSISTANT,
+            content=[_text_block("I should think about this...")],
+        )
+        episode = _make_episode(events=[event])
+        record = _make_record(episodes=[episode])
+
+        backend = AnthropicToolsBackend()
+        ctx = BackendContext(include_reasoning=True)
+        result = backend.lower_record(record, ctx)
+
+        assert len(result.output["messages"]) == 1
+        assert result.output["messages"][0]["role"] == "assistant"
+
+
+# ---------------------------------------------------------------------------
 # ShareGPTBackend
 # ---------------------------------------------------------------------------
 
@@ -557,7 +748,10 @@ class TestLossReport:
         episode = _make_episode(events=[event])
         record = _make_record(episodes=[episode])
 
-        for backend_cls in [SFTBackend, OpenAIToolsBackend, OpenHandsBackend, ShareGPTBackend]:
+        for backend_cls in [
+            SFTBackend, OpenAIToolsBackend, OpenHandsBackend,
+            ShareGPTBackend, AnthropicToolsBackend,
+        ]:
             if backend_cls == ShareGPTBackend:
                 ctx = BackendContext(tool_policy="structured")
             else:
@@ -594,13 +788,17 @@ class TestBackendRegistry:
             "openhands",
             "sharegpt",
             "process-supervision",
+            "anthropic-tools",
         }
         missing = expected - set(names)
         assert not missing, f"Missing backends from registry: {missing}"
 
     def test_get_backend_returns_instance(self) -> None:
         """get_backend returns the correct backend for a known name."""
-        for name in ["sft", "openai-tools", "hermes-xml", "openhands", "sharegpt"]:
+        for name in [
+            "sft", "openai-tools", "hermes-xml",
+            "openhands", "sharegpt", "anthropic-tools",
+        ]:
             b = get_backend(name)
             assert b is not None, f"get_backend({name!r}) returned None"
             assert b.name == name, f"Backend name mismatch: {b.name} != {name}"
