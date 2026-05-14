@@ -6,6 +6,45 @@ readme = "README.md"
 requires-python = ">=3.11,<3.14"
 license = { text = "Apache-2.0" }
 authors = [{ name = "agentir contributors" }]
+keywords = [
+  "agent",
+  "trajectory",
+  "compiler",
+  "IR",
+  "intermediate-representation",
+  "LLM",
+  "training-data",
+  "dataset",
+  "agentic",
+  "trace",
+  "transform",
+  "pass",
+  "backend",
+  "SFT",
+  "RLHF",
+  "DPO",
+  "observability",
+  "OpenHands",
+  "Claude-Code",
+  "ShareGPT",
+  "agent-framework",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Software Development :: Compilers",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+urls = { Homepage = "https://github.com/ravenSanstete/agentir", Documentation = "https://github.com/ravenSanstete/agentir#readme", Repository = "https://github.com/ravenSanstete/agentir.git", Issues = "https://github.com/ravenSanstete/agentir/issues" }
+
 dependencies = [
   "pydantic>=2.8",
   "typer>=0.12",
