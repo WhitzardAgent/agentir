@@ -275,6 +275,23 @@ def _eval_value(
         return expr
 
     if isinstance(expr, str):
+        if expr.startswith('$'):
+            return _resolve_path(root, expr, vars_)
+        if '.' in expr and not expr.startswith(('{', 'http', 'ftp')):
+            if vars_:
+                parts = expr.split('.')
+                current = vars_.get(parts[0])
+                rest = parts[1:]
+                if current is not None and rest:
+                    for segment in rest:
+                        if isinstance(current, dict):
+                            current = current.get(segment)
+                        else:
+                            current = None
+                            break
+                if current is not None:
+                    return current
+            return _resolve_path(root, expr, vars_)
         return expr
 
     # --- structured expressions (must be dict) ---
@@ -434,7 +451,7 @@ class RuntimeDSLFrontend(BaseFrontend):
         # ---- evaluate vars block ----
         vars_: dict[str, Any] = {}
         for var_name, var_expr in self.spec.vars.items():
-            vars_[var_name] = _eval_value(var_expr, sample_dict, {}, eval_context)
+            vars_[var_name] = _eval_value(var_expr, sample_dict, vars_, eval_context)
 
         # ---- row id ----
         src_overrides = self.spec.source_overrides

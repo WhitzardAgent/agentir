@@ -9,6 +9,7 @@ import typer
 from rich.console import Console
 
 from agentir.cli.schema_cmd import app as schema_app
+from agentir.cli.dsl_cmd import dsl_app
 
 
 def _ensure_passes_registered() -> None:
@@ -64,6 +65,7 @@ app = typer.Typer(
 
 # schema is a subgroup (schema export)
 app.add_typer(schema_app, name="schema")
+app.add_typer(dsl_app, name="dsl")
 
 
 @app.command()

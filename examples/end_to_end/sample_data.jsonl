@@ -1,0 +1,2 @@
+{"id": "conv-001", "messages": [{"role": "system", "content": "You are helpful."}, {"role": "user", "content": "What is Python?"}, {"role": "assistant", "content": "Python is a high-level programming language."}]}
+{"id": "conv-002", "messages": [{"role": "system", "content": "You are a coder."}, {"role": "user", "content": "Write hello world in Python."}, {"role": "assistant", "content": "print('Hello, World!')"}]}

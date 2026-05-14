@@ -73,3 +73,8 @@ plugins = ["pydantic.mypy"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--strict-markers --strict-config"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]
